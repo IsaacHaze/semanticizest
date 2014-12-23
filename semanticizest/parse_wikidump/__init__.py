@@ -118,7 +118,7 @@ _UNWANTED = re.compile(r"""
   (:?
     \{\{ .*? \}\}
   | \{\| .*? \|\}
-  | ^[|!] .* $                              # table content
+  | ^[|!] .*? $                              # table content
   | <math> .*? </math>
   | <ref .*? > .*? </ref>
   | <br\s*/>

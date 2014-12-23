@@ -1,4 +1,11 @@
 #!/usr/bin/env python
+"""mwlib wrapper to parse MediaWiki syntax (Wikipedia articles)
+
+Usage:
+    >>> from semanticizest.parse_wikidump.mwl import parse, dispatch_text, dispatch_links
+    >>> tree = parse("[[Wikipedia|wiki]] markup")
+    >>> text, links = dispatch_text(tree), dispatch_links(tree)
+"""
 
 from mwlib.parser.nodes import ArticleLink, Text, Section
 from mwlib.uparser import parseString
@@ -89,6 +96,14 @@ _dispatch_links = {ArticleLink: articlelink,
                    }
 
 
+def parse(text, db=None):
+    """Parse MediaWiki text and return the parse tree."""
+    if db is None:
+        db = MyDB()
+
+    return parseString(raw=text, title='', wikidb=db)
+
+
 if __name__ == '__main__':
     import sys
 
@@ -97,7 +112,6 @@ if __name__ == '__main__':
         option = sys.argv[2]
     except IndexError:
         option = 'links'
-
     options = {'links': (dispatch_links, "\n"),
                'text': (dispatch_text, "")}
 
@@ -106,13 +120,6 @@ if __name__ == '__main__':
     with open(fname) as f:
         data = f.read().decode("utf-8")
 
-    # text = expandstr(data)
-    # res = compat_parse(text)
-
-    res = parseString(raw=data, title='', wikidb=MyDB())
-    # print res.asText()
-    # print "bleh"
+    res = parse(data)
     output = sep.join("_".join(e for e in i) for i in dispatcher(res))
     print output.encode("utf-8")
-    # for i in option(res):
-    #     print type(i), i[:25]

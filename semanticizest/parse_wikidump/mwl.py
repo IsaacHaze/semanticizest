@@ -7,7 +7,7 @@ Usage:
     >>> text, links = dispatch_text(tree), dispatch_links(tree)
 """
 
-from mwlib.parser.nodes import ArticleLink, Text, Section
+from mwlib.parser.nodes import ArticleLink, Text, Section, Table, Ref
 from mwlib.uparser import parseString
 from mwlib.templ.misc import DictDB
 from mwlib.dummydb import DummyDB
@@ -86,11 +86,15 @@ def dispatch_text(node):
 _dispatch_text = {Text: plaintext,
                   Section: heading_text,
                   ArticleLink: articlelink_text,
+                  Table: ignore,
+                  Ref: ignore,
 
                   UnspecifiedNode: dispatch_text
                   }
 
 _dispatch_links = {ArticleLink: articlelink,
+                   Table: ignore,
+                   Ref: ignore,
 
                    UnspecifiedNode: dispatch_links
                    }

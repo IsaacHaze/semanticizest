@@ -2,15 +2,18 @@
 """mwlib wrapper to parse MediaWiki syntax (Wikipedia articles)
 
 Usage:
-    >>> from semanticizest.parse_wikidump.mwl import parse, dispatch_text, dispatch_links
+    >>> from semanticizest.parse_wikidump.mwl import (parse, dispatch_text,
+    ...                                               dispatch_links)
     >>> tree = parse("[[Wikipedia|wiki]] markup")
     >>> text, links = dispatch_text(tree), dispatch_links(tree)
 """
 
-from mwlib.parser.nodes import ArticleLink, ImageLink, Text, Section, Table, Ref
+from mwlib.parser.nodes import (ArticleLink, ImageLink, Text, Section, Table,
+                                Ref)
 from mwlib.uparser import parseString
 from mwlib.templ.misc import DictDB
 from mwlib.dummydb import DummyDB
+from mwlib.siteinfo import get_siteinfo
 
 
 class UnspecifiedNode(object):
@@ -20,10 +23,10 @@ class UnspecifiedNode(object):
 
 class MyDB(DictDB, DummyDB):
     """Kurwa, DictDB has no getURL() and DummyDB no get_site_info"""
-    
+
     def __init__(self, siteinfo=None):
         super(MyDB, self).__init__()
-        
+
         self.siteinfo = siteinfo
 
 
@@ -68,10 +71,10 @@ def heading_text(node):
 
 
 def dispatch(node, table):
-    # print "   ***", type(node)
+    # print "   ***", type(node), node.asText()[:25].encode('utf-8')
     for child in node:
         child_type = type(child)
-        # print "     *", child_type
+        # print "     *", child_type, child.asText()[:25].encode('utf-8')
         fn = (table[child_type] if child_type in table else
               table[UnspecifiedNode])
 
@@ -108,6 +111,8 @@ _dispatch_links = {ArticleLink: articlelink,
 
 def parse(text, db=None, siteinfo=None):
     """Parse MediaWiki text and return the parse tree."""
+    if siteinfo is None:
+        siteinfo = get_siteinfo("nl")
     if db is None:
         db = MyDB(siteinfo=siteinfo)
 
@@ -116,8 +121,7 @@ def parse(text, db=None, siteinfo=None):
 
 if __name__ == '__main__':
     import sys
-    from mwlib.siteinfo import get_siteinfo
-    
+
     fname = sys.argv[1]
     try:
         option = sys.argv[2]
@@ -133,6 +137,6 @@ if __name__ == '__main__':
 
     si = get_siteinfo("nl")
     # print si
-    res = parse(data, siteinfo=si)
+    res = parse(data=si)
     output = sep.join("_".join(e for e in i) for i in dispatcher(res))
     print output.encode("utf-8")

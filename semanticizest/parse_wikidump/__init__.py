@@ -5,7 +5,6 @@ from __future__ import print_function
 from bz2 import BZ2File
 from collections import Counter
 import gzip
-from HTMLParser import HTMLParser
 from itertools import chain
 import logging
 import re
@@ -84,23 +83,13 @@ def extract_pages(f):
             elem.clear()
 
 
-# def extract_links(article):
-#     """Extract all (or most) links from article text (wiki syntax).
+def extract_links(article):
+    """Extract all (or most) links from article text (wiki syntax).
 
-#     Returns an iterable over (target, anchor) pairs.
-#     """
-#     links = re.findall(r"(\w*) \[\[ ([^]]+) \]\] (\w*)", article,
-#                        re.UNICODE | re.VERBOSE)
-
-#     r = []
-#     for before, l, after in links:
-#         if '|' in l:
-#             target, anchor = l.split('|', 1)
-#         else:
-#             target, anchor = l, l
-#         # If the anchor contains a colon, assume it's a file or category link.
-#         if ':' in target:
-#             continue
+    Returns an iterable over (target, anchor) pairs.
+    """
+    # TODO: remove this?
+    return (fix_title(t, a) for t, a in dispatch_links(parse(article)))
 
 
 def fix_title(target, anchor):
@@ -113,45 +102,14 @@ def fix_title(target, anchor):
     return (target, anchor)
 
 
-# _UNWANTED = re.compile(r"""
-#   (:?
-#     \{\{ .*? \}\}
-#   | \{\| .*? \|\}
-#   | ^[|!] .*? $                              # table content
-#   | <math> .*? </math>
-#   | <ref .*? > .*? </ref>
-#   | <br\s*/>
-#   | </?su[bp]\s*>
-#   | \[\[ [^][:]* : (\[\[.*?\]\]|.)*? \]\]   # media, categories
-#   | =+ .*? =+                               # headers
-#   | ''+
-#   | ^\*                                     # list bullets
-#   )
-# """, re.DOTALL | re.MULTILINE | re.UNICODE | re.VERBOSE)
+def clean_text(page):
+    """Return the clean-ish running text parts of a page."""
+    # TODO: remove?
+    return "".join(e[0] for e in dispatch_text(parse(page)))
 
 
-# _unescape_entities = HTMLParser().unescape
-
-
-# def clean_text(page):
-#     """Return the clean-ish running text parts of a page."""
-#     return re.sub(_UNWANTED, "", _unescape_entities(page))
-
-
-# _LINK_SYNTAX = re.compile(r"""
-#     (?:
-#         \[\[
-#         (?: [^]|]* \|)?     # "target|" in [[target|anchor]]
-#     |
-#         \]\]
-#     )
-# """, re.DOTALL | re.MULTILINE | re.VERBOSE)
-
-
-# def remove_links(page):
-#     """Remove links from clean_text output."""
-#     page = re.sub(r'\]\]\[\[', ' ', page)       # hack hack hack, see test
-#     return re.sub(_LINK_SYNTAX, '', page)
+"""Remove links from clean_text output."""
+remove_links = clean_text
 
 
 def page_statistics(page, N, sentence_splitter=None, tokenizer=None):
@@ -172,9 +130,9 @@ def page_statistics(page, N, sentence_splitter=None, tokenizer=None):
         raise TypeError("expected integer or None for N, got %r" % N)
 
     tree = parse(page)
-    links = (fix_title(t, a) for t,a in dispatch_links(tree))
+    links = (fix_title(t, a) for t, a in dispatch_links(tree))
     link_counts = Counter(links)
-    
+
     # clean = clean_text(page)
     # link_counts = Counter(extract_links(clean))
 

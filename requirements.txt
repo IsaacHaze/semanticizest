@@ -1,4 +1,5 @@
 cytoolz
 docopt
-six>=1.4.1
+mwlib
 nose>=1.3.3
+six>=1.4.1

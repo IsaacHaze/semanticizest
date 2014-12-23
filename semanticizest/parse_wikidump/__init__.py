@@ -13,6 +13,7 @@ import xml.etree.ElementTree as etree   # don't use LXML, it's slower (!)
 
 import six
 from semanticizest._util import ngrams
+from .mwl import parse, dispatch_links, dispatch_text
 
 
 _logger = logging.getLogger(__name__)
@@ -83,76 +84,74 @@ def extract_pages(f):
             elem.clear()
 
 
-def extract_links(article):
-    """Extract all (or most) links from article text (wiki syntax).
+# def extract_links(article):
+#     """Extract all (or most) links from article text (wiki syntax).
 
-    Returns an iterable over (target, anchor) pairs.
-    """
-    links = re.findall(r"(\w*) \[\[ ([^]]+) \]\] (\w*)", article,
-                       re.UNICODE | re.VERBOSE)
+#     Returns an iterable over (target, anchor) pairs.
+#     """
+#     links = re.findall(r"(\w*) \[\[ ([^]]+) \]\] (\w*)", article,
+#                        re.UNICODE | re.VERBOSE)
 
-    r = []
-    for before, l, after in links:
-        if '|' in l:
-            target, anchor = l.split('|', 1)
-        else:
-            target, anchor = l, l
-        # If the anchor contains a colon, assume it's a file or category link.
-        if ':' in target:
-            continue
-
-        # Remove section links and normalize to the format used in <redirect>
-        # elements: uppercase first character, spaces instead of underscores.
-        target = target.split('#', 1)[0].replace('_', ' ')
-        if not target:
-            continue        # section link
-        if not target[0].isupper():
-            target = target[0].upper() + target[1:]
-        anchor = before + anchor + after
-        r.append((target, anchor))
-
-    return r
+#     r = []
+#     for before, l, after in links:
+#         if '|' in l:
+#             target, anchor = l.split('|', 1)
+#         else:
+#             target, anchor = l, l
+#         # If the anchor contains a colon, assume it's a file or category link.
+#         if ':' in target:
+#             continue
 
 
-_UNWANTED = re.compile(r"""
-  (:?
-    \{\{ .*? \}\}
-  | \{\| .*? \|\}
-  | ^[|!] .*? $                              # table content
-  | <math> .*? </math>
-  | <ref .*? > .*? </ref>
-  | <br\s*/>
-  | </?su[bp]\s*>
-  | \[\[ [^][:]* : (\[\[.*?\]\]|.)*? \]\]   # media, categories
-  | =+ .*? =+                               # headers
-  | ''+
-  | ^\*                                     # list bullets
-  )
-""", re.DOTALL | re.MULTILINE | re.UNICODE | re.VERBOSE)
+def fix_title(target, anchor):
+    # Remove section links and normalize to the format used in <redirect>
+    # elements: uppercase first character, spaces instead of underscores.
+    target = target.replace('_', ' ')
+    if not target[0].isupper():
+        target = target[0].upper() + target[1:]
+    # anchor = before + anchor + after
+    return (target, anchor)
 
 
-_unescape_entities = HTMLParser().unescape
+# _UNWANTED = re.compile(r"""
+#   (:?
+#     \{\{ .*? \}\}
+#   | \{\| .*? \|\}
+#   | ^[|!] .*? $                              # table content
+#   | <math> .*? </math>
+#   | <ref .*? > .*? </ref>
+#   | <br\s*/>
+#   | </?su[bp]\s*>
+#   | \[\[ [^][:]* : (\[\[.*?\]\]|.)*? \]\]   # media, categories
+#   | =+ .*? =+                               # headers
+#   | ''+
+#   | ^\*                                     # list bullets
+#   )
+# """, re.DOTALL | re.MULTILINE | re.UNICODE | re.VERBOSE)
 
 
-def clean_text(page):
-    """Return the clean-ish running text parts of a page."""
-    return re.sub(_UNWANTED, "", _unescape_entities(page))
+# _unescape_entities = HTMLParser().unescape
 
 
-_LINK_SYNTAX = re.compile(r"""
-    (?:
-        \[\[
-        (?: [^]|]* \|)?     # "target|" in [[target|anchor]]
-    |
-        \]\]
-    )
-""", re.DOTALL | re.MULTILINE | re.VERBOSE)
+# def clean_text(page):
+#     """Return the clean-ish running text parts of a page."""
+#     return re.sub(_UNWANTED, "", _unescape_entities(page))
 
 
-def remove_links(page):
-    """Remove links from clean_text output."""
-    page = re.sub(r'\]\]\[\[', ' ', page)       # hack hack hack, see test
-    return re.sub(_LINK_SYNTAX, '', page)
+# _LINK_SYNTAX = re.compile(r"""
+#     (?:
+#         \[\[
+#         (?: [^]|]* \|)?     # "target|" in [[target|anchor]]
+#     |
+#         \]\]
+#     )
+# """, re.DOTALL | re.MULTILINE | re.VERBOSE)
+
+
+# def remove_links(page):
+#     """Remove links from clean_text output."""
+#     page = re.sub(r'\]\]\[\[', ' ', page)       # hack hack hack, see test
+#     return re.sub(_LINK_SYNTAX, '', page)
 
 
 def page_statistics(page, N, sentence_splitter=None, tokenizer=None):
@@ -172,11 +171,16 @@ def page_statistics(page, N, sentence_splitter=None, tokenizer=None):
     if N is not None and not isinstance(N, int):
         raise TypeError("expected integer or None for N, got %r" % N)
 
-    clean = clean_text(page)
-    link_counts = Counter(extract_links(clean))
+    tree = parse(page)
+    links = (fix_title(t, a) for t,a in dispatch_links(tree))
+    link_counts = Counter(links)
+    
+    # clean = clean_text(page)
+    # link_counts = Counter(extract_links(clean))
 
     if N:
-        no_links = remove_links(clean)
+        # no_links = remove_links(clean)
+        no_links = "".join(e[0] for e in dispatch_text(tree))
 
         if sentence_splitter is None:
             sentences = re.split(r'(?:\n{2,}|\.\s+)', no_links,

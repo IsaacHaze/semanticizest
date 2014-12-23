@@ -7,7 +7,7 @@ Usage:
     >>> text, links = dispatch_text(tree), dispatch_links(tree)
 """
 
-from mwlib.parser.nodes import ArticleLink, Text, Section, Table, Ref
+from mwlib.parser.nodes import ArticleLink, ImageLink, Text, Section, Table, Ref
 from mwlib.uparser import parseString
 from mwlib.templ.misc import DictDB
 from mwlib.dummydb import DummyDB
@@ -20,7 +20,11 @@ class UnspecifiedNode(object):
 
 class MyDB(DictDB, DummyDB):
     """Kurwa, DictDB has no getURL() and DummyDB no get_site_info"""
-    pass
+    
+    def __init__(self, siteinfo=None):
+        super(MyDB, self).__init__()
+        
+        self.siteinfo = siteinfo
 
 
 def ignore(node):
@@ -86,6 +90,7 @@ def dispatch_text(node):
 _dispatch_text = {Text: plaintext,
                   Section: heading_text,
                   ArticleLink: articlelink_text,
+                  ImageLink: ignore,
                   Table: ignore,
                   Ref: ignore,
 
@@ -95,22 +100,24 @@ _dispatch_text = {Text: plaintext,
 _dispatch_links = {ArticleLink: articlelink,
                    Table: ignore,
                    Ref: ignore,
+                   ImageLink: ignore,
 
                    UnspecifiedNode: dispatch_links
                    }
 
 
-def parse(text, db=None):
+def parse(text, db=None, siteinfo=None):
     """Parse MediaWiki text and return the parse tree."""
     if db is None:
-        db = MyDB()
+        db = MyDB(siteinfo=siteinfo)
 
     return parseString(raw=text, title='', wikidb=db)
 
 
 if __name__ == '__main__':
     import sys
-
+    from mwlib.siteinfo import get_siteinfo
+    
     fname = sys.argv[1]
     try:
         option = sys.argv[2]
@@ -124,6 +131,8 @@ if __name__ == '__main__':
     with open(fname) as f:
         data = f.read().decode("utf-8")
 
-    res = parse(data)
+    si = get_siteinfo("nl")
+    # print si
+    res = parse(data, siteinfo=si)
     output = sep.join("_".join(e for e in i) for i in dispatcher(res))
     print output.encode("utf-8")

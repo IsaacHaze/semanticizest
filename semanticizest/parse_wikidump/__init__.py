@@ -18,6 +18,16 @@ from .mwl import parse, dispatch_links, dispatch_text
 _logger = logging.getLogger(__name__)
 
 
+def mwp_parse(markup):
+    # TODO: maintain single parser? a pool of parsers?
+    return Parser().parse(markup)
+
+def mwp_plaintext(wikicode):
+    pass
+def mwp_links(wikicode):
+    pass
+
+
 def _get_namespace(tag):
     try:
         namespace = re.match(r"^{(.*?)}", tag).group(1)

@@ -26,7 +26,7 @@ from .._semanticizer import createtables_path
 
 logger = logging.getLogger('semanticizest')
 logger.addHandler(logging.StreamHandler(sys.stderr))
-logger.setLevel('INFO')
+logger.setLevel('DEBUG')
 
 
 class Progress(object):

@@ -33,14 +33,89 @@ In de onderstaande tabel de gemiddelde prijs van nikkel per jaar.
 |}
 This is not in the original.'''
 
+# quite common on nlwiki
+nested_infobox_template = u"""{{Infobox politieke partij België
+| naam             = Groen
+| afbeelding       = Groen_logo.png
+| partijvoorzitter = [[Wouter Van Besien]]
+| vice-partijvoorzitter = [[Elke Van den Brandt]]
+| politiek secretaris =
+| functienaam1     = [[Europees Parlement]]
+| functie1         = [[Bart Staes]]
+| functienaam2     = [[Senaat (België)|Senaat]]
+| functie2         = [[Elisabeth Meuleman]]
+| functienaam3     = [[Kamer van Volksvertegenwoordigers|Kamer]]
+| functie3         = [[Kristof Calvo]] (fractie met [[Ecolo]])
+| functienaam4     = [[Vlaams Parlement]]
+| functie4         = [[Björn Rzoska]]
+| functienaam5     = [[Brussels Hoofdstedelijk Parlement|Brussels Parlement]]
+| functie5         = [[Annemie Maes]]
+| zetelnaam1       = [[Europees Parlement]]
+| zetels1          = 1
+| zetelstotaal1    = 21
+| verkiezingen1    = [[Europese Parlementsverkiezingen 2014|25 mei 2014]]
+| zetelnaam2       = [[Senaat (België)|Senaat]]
+| zetels2          = 2
+| zetelstotaal2    = 71
+| verkiezingen2    = [[Belgische federale verkiezingen 2010|13 juni 2010]]
+| zetelnaam3       = [[Kamer van Volksvertegenwoordigers|Kamer]]
+| zetels3          = 5
+| zetelstotaal3    = 150
+| verkiezingen3    = [[Belgische federale verkiezingen 2010|13 juni 2010]]
+| zetelnaam4       = [[Vlaams Parlement]]
+| zetels4          = 7
+| zetelstotaal4    = 124
+| verkiezingen4    = [[Vlaamse verkiezingen 2009|7 juni 2009]]
+| zetelnaam5       = [[Brussels Hoofdstedelijk Parlement|Brussels Parlement]]
+| zetels5          = 2
+| zetelstotaal5    = 89
+| verkiezingen5    = [[Brusselse gewestverkiezingen 2009|7 juni 2009]]
+| zetelnaam6       = [[Gedeputeerde|Gedeputeerden in Vlaamse provincies]]
+| zetels6          = 1
+| zetelstotaal6    = 30
+| verkiezingen6    = [[Belgische lokale verkiezingen 2012|14 oktober 2012]]
+| zetelnaam7       = [[Burgemeester|Burgemeesters in Vlaamse gemeenten]]
+| zetels7          = 2
+| zetelstotaal7    = 308
+| verkiezingen7    = [[Belgische lokale verkiezingen 2012|14 oktober 2012]]
+| zetelnaam8       = [[Burgemeester|Burgemeesters in Brusselse gemeenten]]
+| zetels8          =
+| zetelstotaal8    = 19
+| verkiezingen8    =
+| exnaam           = 1979: Agalev&lt;br /&gt;2003: Groen!
+| actief in        = {{BE-vlag|Vlaanderen}}&lt;br /&gt;{{BE-vlag|Brussel}}
+| hoofdkantoor     = S. De Bruynestraat 78-82&lt;br /&gt;1070 [[Anderlecht]]&lt;br /&gt;{{BE}}
+| richting         = [[Links (politiek)|Links]]
+| ideologie        = [[Ecologisme]]&lt;br /&gt;[[Pacifisme]]&lt;br /&gt;[[Progressivisme]]
+| jongeren         = [[Jong Groen]]
+| senioren         = [[GroenPlus]]
+| vrouwen          =
+| euroorganisatie  = [[Europese Groene Partij|EGP]]
+| eurofractie      = [[De Groenen/Europese Vrije Alliantie|Groenen/EVA]]
+| internationaal   = [[Global Greens|GG]]
+| krant            = [http://www.groen.be/lees-mee/ecozine_234.aspx Ecozine]
+| website          = [http://www.groen.be www.groen.be]
+}}
+[[Bestand:Logogroen.gif|150px|thumb|Oude logo van Groen&lt;br /&gt;(2003- 2012)]]
+'''Groen''' is een [[Vlaanderen|Vlaamse]], [[progressivisme|progressieve]] en [[Ecologisme|groene]] [[politieke partij]], die ongeveer 7250 leden telt (2012). Tot 15 november 2003 heette de partij 'Agalev'. Daarna werd de naam 'Groen!'. Begin 2012 werd het uitroepteken weggelaten. De huidige voorzitter is [[Wouter Van Besien]]. De partij maakt deel uit van de [[Brusselse Hoofdstedelijke Regering]].
 
-def test_clean_text():
-    # raise SkipTest('needs to be checked')
-    out = clean_text(unclosed_table).splitlines()
+[[Pacifisme]], sociale rechtvaardigheid en ecologie (duurzame ontwikkeling) zijn drie pijlers van het Groen-programma. De partij noemt 'de kwaliteit van leven' de 'groene draad door haar programma'. Groen is een zusterpartij van het Franstalige [[Ecolo]].
+"""
+
+
+def test_clean_text_unclosed_table():
+    actual = clean_text(unclosed_table).splitlines()
     expected = (unclosed_table.splitlines()[:4]
                 + ['']
                 + unclosed_table.splitlines()[-1:])
-    assert_equal(out, expected)
+    assert_equal(actual, expected)
+
+
+# def test_clean_text_nested_infobox_template():
+#     actual = clean_text(nested_infobox_template)
+#     expected = u"""abc"""
+
+#     assert_equal(actual, expected)
 
 
 first_link = compose(tuple, next, iter, extract_links)
@@ -138,74 +213,6 @@ def test_page_statistics():
 
 
 def test_page_statistics_template():
-    text = u"""{{Infobox politieke partij België
-| naam             = Groen
-| afbeelding       = Groen_logo.png
-| partijvoorzitter = [[Wouter Van Besien]]
-| vice-partijvoorzitter = [[Elke Van den Brandt]]
-| politiek secretaris =
-| functienaam1     = [[Europees Parlement]]
-| functie1         = [[Bart Staes]]
-| functienaam2     = [[Senaat (België)|Senaat]]
-| functie2         = [[Elisabeth Meuleman]]
-| functienaam3     = [[Kamer van Volksvertegenwoordigers|Kamer]]
-| functie3         = [[Kristof Calvo]] (fractie met [[Ecolo]])
-| functienaam4     = [[Vlaams Parlement]]
-| functie4         = [[Björn Rzoska]]
-| functienaam5     = [[Brussels Hoofdstedelijk Parlement|Brussels Parlement]]
-| functie5         = [[Annemie Maes]]
-| zetelnaam1       = [[Europees Parlement]]
-| zetels1          = 1
-| zetelstotaal1    = 21
-| verkiezingen1    = [[Europese Parlementsverkiezingen 2014|25 mei 2014]]
-| zetelnaam2       = [[Senaat (België)|Senaat]]
-| zetels2          = 2
-| zetelstotaal2    = 71
-| verkiezingen2    = [[Belgische federale verkiezingen 2010|13 juni 2010]]
-| zetelnaam3       = [[Kamer van Volksvertegenwoordigers|Kamer]]
-| zetels3          = 5
-| zetelstotaal3    = 150
-| verkiezingen3    = [[Belgische federale verkiezingen 2010|13 juni 2010]]
-| zetelnaam4       = [[Vlaams Parlement]]
-| zetels4          = 7
-| zetelstotaal4    = 124
-| verkiezingen4    = [[Vlaamse verkiezingen 2009|7 juni 2009]]
-| zetelnaam5       = [[Brussels Hoofdstedelijk Parlement|Brussels Parlement]]
-| zetels5          = 2
-| zetelstotaal5    = 89
-| verkiezingen5    = [[Brusselse gewestverkiezingen 2009|7 juni 2009]]
-| zetelnaam6       = [[Gedeputeerde|Gedeputeerden in Vlaamse provincies]]
-| zetels6          = 1
-| zetelstotaal6    = 30
-| verkiezingen6    = [[Belgische lokale verkiezingen 2012|14 oktober 2012]]
-| zetelnaam7       = [[Burgemeester|Burgemeesters in Vlaamse gemeenten]]
-| zetels7          = 2
-| zetelstotaal7    = 308
-| verkiezingen7    = [[Belgische lokale verkiezingen 2012|14 oktober 2012]]
-| zetelnaam8       = [[Burgemeester|Burgemeesters in Brusselse gemeenten]]
-| zetels8          =
-| zetelstotaal8    = 19
-| verkiezingen8    =
-| exnaam           = 1979: Agalev&lt;br /&gt;2003: Groen!
-| actief in        = {{BE-vlag|Vlaanderen}}&lt;br /&gt;{{BE-vlag|Brussel}}
-| hoofdkantoor     = S. De Bruynestraat 78-82&lt;br /&gt;1070 [[Anderlecht]]&lt;br /&gt;{{BE}}
-| richting         = [[Links (politiek)|Links]]
-| ideologie        = [[Ecologisme]]&lt;br /&gt;[[Pacifisme]]&lt;br /&gt;[[Progressivisme]]
-| jongeren         = [[Jong Groen]]
-| senioren         = [[GroenPlus]]
-| vrouwen          =
-| euroorganisatie  = [[Europese Groene Partij|EGP]]
-| eurofractie      = [[De Groenen/Europese Vrije Alliantie|Groenen/EVA]]
-| internationaal   = [[Global Greens|GG]]
-| krant            = [http://www.groen.be/lees-mee/ecozine_234.aspx Ecozine]
-| website          = [http://www.groen.be www.groen.be]
-}}
-[[Bestand:Logogroen.gif|150px|thumb|Oude logo van Groen&lt;br /&gt;(2003- 2012)]]
-'''Groen''' is een [[Vlaanderen|Vlaamse]], [[progressivisme|progressieve]] en [[Ecologisme|groene]] [[politieke partij]], die ongeveer 7250 leden telt (2012). Tot 15 november 2003 heette de partij 'Agalev'. Daarna werd de naam 'Groen!'. Begin 2012 werd het uitroepteken weggelaten. De huidige voorzitter is [[Wouter Van Besien]]. De partij maakt deel uit van de [[Brusselse Hoofdstedelijke Regering]].
-
-[[Pacifisme]], sociale rechtvaardigheid en ecologie (duurzame ontwikkeling) zijn drie pijlers van het Groen-programma. De partij noemt 'de kwaliteit van leven' de 'groene draad door haar programma'. Groen is een zusterpartij van het Franstalige [[Ecolo]].
-"""
-
     expected_links = {(u'Vlaanderen', u'Vlaamse'): 1,
                       (u'Progressivisme', u'progressieve'): 1,  # capital P corrected by our WP case fixer
                       (u'Ecologisme', u'groene'): 1,
@@ -216,7 +223,7 @@ def test_page_statistics_template():
                       (u'Ecolo', u'Ecolo'): 1
                       }
 
-    links, ngrams = page_statistics(text, N=None)
+    links, ngrams = page_statistics(nested_infobox_template, N=None)
 
     assert_equal(set(expected_links.keys()),
                  set(links.keys()))

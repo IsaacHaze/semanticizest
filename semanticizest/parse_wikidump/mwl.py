@@ -137,6 +137,6 @@ if __name__ == '__main__':
 
     si = get_siteinfo("nl")
     # print si
-    res = parse(data=si)
+    res = parse(data, siteinfo=si)
     output = sep.join("_".join(e for e in i) for i in dispatcher(res))
     print output.encode("utf-8")
